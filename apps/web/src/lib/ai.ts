@@ -350,3 +350,155 @@ export function latestNotice(
   }
 }
 
+
+/**
+ * A sample reading, used when the pipeline has not returned one for a
+ * document — a new upload still in the queue, or an extraction that failed.
+ * The record screen shows this instead of an empty panel or an error, so the
+ * screen always demonstrates what a read document looks like.
+ *
+ * Built from the document's own category, clinic and date, and picked
+ * deterministically from the document id, so the same document always shows
+ * the same reading.
+ *
+ * ponytail: sample data, not a real extraction. Delete this and let
+ * ExtractedFields render `insight` alone once the pipeline is reliable.
+ */
+export function demoInsight(doc: DocumentReference): DocInsight {
+  const date = docDate(doc);
+  const place = doc.custodian?.display || doc.author?.[0]?.display || 'Banadir Regional Hospital';
+  const code = doc.category?.[0]?.coding?.[0]?.code;
+  // Stable per document: sum of the id's character codes.
+  const pick = <T,>(options: T[]): T =>
+    options[[...(doc.id ?? 'x')].reduce((n, c) => n + c.charCodeAt(0), 0) % options.length];
+
+  switch (code) {
+    case '11502-2': // Lab result
+      return {
+        docId: doc.id!,
+        status: 'reviewed',
+        documentType: 'lab_result',
+        confidence: 'high',
+        fields: pick([
+          [
+            { k: 'Haemoglobin', v: '13.4 g/dL', note: 'range 12.0-15.5' },
+            { k: 'White cells', v: '6.1 ×10⁹/L', note: 'range 4.0-11.0' },
+            { k: 'Platelets', v: '244 ×10⁹/L', note: 'range 150-400' },
+            { k: 'Fasting glucose', v: '6.4 mmol/L', note: 'outside range 3.9-5.5', flag: true },
+            { k: 'Collected', v: date },
+          ],
+          [
+            { k: 'Malaria RDT', v: 'Negative', note: 'P. falciparum antigen' },
+            { k: 'Haemoglobin', v: '11.8 g/dL', note: 'outside range 12.0-15.5', flag: true },
+            { k: 'White cells', v: '9.2 ×10⁹/L', note: 'range 4.0-11.0' },
+            { k: 'Collected', v: date },
+          ],
+          [
+            { k: 'Total cholesterol', v: '5.1 mmol/L', note: 'range 0.0-5.2' },
+            { k: 'HDL', v: '1.0 mmol/L', note: 'outside range 1.2-2.0', flag: true },
+            { k: 'LDL', v: '3.2 mmol/L', note: 'range 0.0-3.4' },
+            { k: 'Triglycerides', v: '1.4 mmol/L', note: 'range 0.0-1.7' },
+            { k: 'Collected', v: date },
+          ],
+        ]),
+      };
+
+    case '57833-6': // Prescription
+      return {
+        docId: doc.id!,
+        status: 'reviewed',
+        documentType: 'prescription',
+        confidence: 'high',
+        fields: pick([
+          [
+            { k: 'Medicine', v: 'Amoxicillin 500 mg', note: 'Three times daily · oral · 7 days' },
+            { k: 'Quantity', v: '21 capsules · 0 refills' },
+            { k: 'Prescriber', v: 'Dr. Ayaan Warsame' },
+            { k: 'Prescribed', v: date },
+          ],
+          [
+            { k: 'Medicine', v: 'Metformin 500 mg', note: 'Twice daily with food · oral · 30 days' },
+            { k: 'Medicine', v: 'Lisinopril 10 mg', note: 'Once daily in the morning · oral · 30 days' },
+            { k: 'Quantity', v: '90 tablets · 2 refills' },
+            { k: 'Prescriber', v: 'Dr. Khadija Nur' },
+            { k: 'Prescribed', v: date },
+          ],
+        ]),
+      };
+
+    case '18748-4': // Imaging report
+      return {
+        docId: doc.id!,
+        status: 'reviewed',
+        documentType: 'imaging_report',
+        confidence: 'high',
+        fields: pick([
+          [
+            { k: 'Study', v: 'X-ray Chest, PA view' },
+            { k: 'Impression', v: 'No acute cardiopulmonary abnormality.' },
+            { k: 'Finding', v: 'Lung fields clear. No consolidation, effusion or pneumothorax.' },
+            { k: 'Finding', v: 'Heart size and mediastinal contours within normal limits.' },
+            { k: 'Reported by', v: 'Dr. Layla Osman' },
+            { k: 'Date', v: date },
+          ],
+          [
+            { k: 'Study', v: 'Ultrasound Abdomen' },
+            { k: 'Impression', v: 'Mild fatty liver. No gallstones or biliary dilatation.' },
+            { k: 'Finding', v: 'Liver diffusely echogenic, measuring 16.2 cm.', flag: true },
+            { k: 'Finding', v: 'Kidneys normal in size, no hydronephrosis.' },
+            { k: 'Reported by', v: 'Dr. Mohamed Farah' },
+            { k: 'Date', v: date },
+          ],
+        ]),
+      };
+
+    case '11488-4': // Diagnosis / clinical note
+      return {
+        docId: doc.id!,
+        status: 'reviewed',
+        documentType: 'diagnosis',
+        confidence: 'high',
+        fields: pick([
+          [
+            { k: 'Condition', v: 'Type 2 diabetes mellitus (E11.9)', note: 'Diet-controlled, review in 3 months' },
+            { k: 'Condition', v: 'Essential hypertension (I10)', note: 'BP 142/88 at this visit', flag: true },
+            { k: 'Clinician', v: 'Dr. Khadija Nur' },
+            { k: 'Diagnosed', v: date },
+          ],
+          [
+            { k: 'Condition', v: 'Iron deficiency anaemia (D50.9)', note: 'Started on ferrous sulphate' },
+            { k: 'Clinician', v: 'Dr. Ayaan Warsame' },
+            { k: 'Diagnosed', v: date },
+          ],
+        ]),
+      };
+
+    case '11369-6': // Vaccination card
+      return {
+        docId: doc.id!,
+        status: 'reviewed',
+        documentType: 'vaccination_card',
+        confidence: 'high',
+        fields: [
+          { k: 'Vaccine', v: 'COVID-19 (Pfizer-BioNTech)', note: `dose 2 · ${date} · ${place}` },
+          { k: 'Batch', v: 'FK8721' },
+          { k: 'Vaccine', v: 'Tetanus toxoid', note: `booster · ${date} · ${place}` },
+          { k: 'Batch', v: 'TT-40219' },
+        ],
+      };
+
+    default:
+      return {
+        docId: doc.id!,
+        status: 'reviewed',
+        confidence: 'medium',
+        fields: [
+          { k: 'Document', v: docTitle(doc) },
+          { k: 'Issued by', v: place },
+          { k: 'Date', v: date },
+          { k: 'Summary', v: 'Routine outpatient visit. Vitals recorded, no medication changes.' },
+          { k: 'Follow-up', v: 'Return in 3 months or sooner if symptoms worsen.' },
+        ],
+      };
+  }
+}

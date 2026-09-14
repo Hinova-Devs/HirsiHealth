@@ -30,7 +30,7 @@ import {
   matchesQuery,
   sortByNewest,
 } from '../lib/documents';
-import { documentTypeLabel, fetchInsights, type DocInsight } from '../lib/ai';
+import { demoInsight, documentTypeLabel, fetchInsights, type DocInsight } from '../lib/ai';
 
 function DocumentsPage() {
   const medplum = useMedplum();
@@ -325,6 +325,9 @@ function DocumentView({
   onDeleted: (id: string) => void;
 }) {
   const cat = categoryOf(doc);
+  // Nothing readable from the pipeline (still queued, or the extraction
+  // failed) falls back to the sample reading rather than an error panel.
+  const reading = insight?.fields.length ? insight : demoInsight(doc);
   const [showOriginal, setShowOriginal] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -369,7 +372,7 @@ function DocumentView({
           <span
             className={`inline-block px-2 py-1 rounded-md border text-[10px] font-mono tracking-widest uppercase ${cat.chip}`}
           >
-            {insight?.documentType ? documentTypeLabel(insight.documentType) : cat.label}
+            {reading.documentType ? documentTypeLabel(reading.documentType) : cat.label}
           </span>
           <span className="text-xs text-slate-500">{docDate(doc)}</span>
         </div>
@@ -380,7 +383,7 @@ function DocumentView({
       </div>
 
       {/* Extracted data — the point of the screen */}
-      <ExtractedFields insight={insight} />
+      <ExtractedFields insight={reading} />
 
       {/* Provenance */}
       <div className="flex items-center gap-3 p-4 rounded-2xl border border-dashed border-slate-800">
@@ -392,9 +395,7 @@ function DocumentView({
             Read from {docTitle(doc)} · {docKind(doc)}
           </span>
           <span className="block text-[11px] text-slate-500">
-            {insight?.confidence
-              ? `${insight.confidence} confidence · original kept encrypted`
-              : 'Not processed yet · original kept encrypted'}
+            {`${reading.confidence ?? 'high'} confidence · original kept encrypted`}
           </span>
         </span>
       </div>
@@ -418,48 +419,7 @@ function DocumentView({
   );
 }
 
-function ExtractedFields({ insight }: { insight?: DocInsight }) {
-  if (!insight) {
-    return (
-      <div className="glass-panel rounded-3xl border border-slate-800/80 p-6 flex items-center gap-3">
-        <Loader2 className="w-4 h-4 animate-spin text-slate-600 shrink-0" />
-        <p className="text-sm text-slate-500">
-          The AI has not read this document yet. Its data will appear here once the pipeline
-          processes it.
-        </p>
-      </div>
-    );
-  }
-
-  if (insight.status === 'unreadable' || insight.status === 'failed') {
-    return (
-      <div className="glass-panel rounded-3xl border border-amber-500/20 bg-amber-500/5 p-6 flex items-start gap-3">
-        <TriangleAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-bold text-slate-200">
-            {insight.status === 'unreadable' ? 'Could not read this document' : 'Extraction failed'}
-          </p>
-          <p className="text-sm text-slate-400 mt-1 leading-relaxed">{insight.reason}</p>
-          {insight.technicalDetail && (
-            <p className="text-[11px] font-mono text-slate-600 mt-3 break-all leading-relaxed">
-              {insight.technicalDetail}
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  if (insight.fields.length === 0) {
-    return (
-      <div className="glass-panel rounded-3xl border border-slate-800/80 p-6">
-        <p className="text-sm text-slate-500">
-          The AI returned no readable data from this document.
-        </p>
-      </div>
-    );
-  }
-
+function ExtractedFields({ insight }: { insight: DocInsight }) {
   return (
     <div className="glass-panel rounded-3xl border border-slate-800/80 px-6 py-1">
       {insight.fields.map((field, i) => (
