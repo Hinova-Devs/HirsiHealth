@@ -237,13 +237,16 @@ function DashboardPage() {
                 const docDate = doc.date 
                   ? new Date(doc.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
                   : 'No date';
-                const docCategory = doc.category?.[0]?.text || 'General Record';
+                const docCategory = doc.category?.[0]?.text || doc.category?.[0]?.coding?.[0]?.display || 'General Record';
                 const attachmentTitle = doc.content?.[0]?.attachment?.title || doc.description || 'Untitled Document';
                 
                 return (
-                  <div 
+                  <Link 
                     key={doc.id} 
-                    className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/40 border border-slate-900 hover:border-slate-800 hover:bg-slate-900/80 transition-all group"
+                    to="/documents"
+                    search={{ doc: doc.id }}
+                    id={`btn_view_recent_${doc.id}`}
+                    className="flex items-center justify-between p-4 rounded-2xl bg-slate-900/40 border border-slate-900 hover:border-slate-800 hover:bg-slate-900/80 transition-all group cursor-pointer"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 group-hover:bg-indigo-500 group-hover:text-slate-950 transition-all">
@@ -263,14 +266,12 @@ function DashboardPage() {
                         </div>
                       </div>
                     </div>
-                    <Link
-                      to="/documents"
-                      id={`btn_view_recent_${doc.id}`}
-                      className="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-teal-400 transition-all"
+                    <div
+                      className="p-2 rounded-lg group-hover:bg-slate-800 text-slate-400 group-hover:text-teal-400 transition-all"
                     >
                       <ChevronRight className="w-4 h-4" />
-                    </Link>
-                  </div>
+                    </div>
+                  </Link>
                 );
               })}
             </div>

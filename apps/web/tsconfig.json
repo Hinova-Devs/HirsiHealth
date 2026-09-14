@@ -21,5 +21,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  /* *.check.ts are node self-checks, not part of the bundle. */
+  "include": ["src"],
+  "exclude": ["src/**/*.check.ts"]
 }

@@ -1,0 +1,46 @@
+{
+  "resourceType": "AccessPolicy",
+  "id": "e8d50b9c-11e1-4ef3-bd66-310f331cbe1b",
+  "name": "Patient Access Policy",
+  "compartment": {
+    "reference": "Patient/%profile.id%"
+  },
+  "resource": [
+    {
+      "resourceType": "Patient",
+      "criteria": "Patient?_compartment=%patient"
+    },
+    {
+      "resourceType": "Binary"
+    },
+    {
+      "resourceType": "DocumentReference",
+      "criteria": "DocumentReference?_compartment=%patient"
+    },
+    {
+      "resourceType": "Media",
+      "criteria": "Media?_compartment=%patient"
+    },
+    {
+      "resourceType": "Observation",
+      "criteria": "Observation?_compartment=%patient"
+    },
+    {
+      "resourceType": "AllergyIntolerance",
+      "criteria": "AllergyIntolerance?_compartment=%patient"
+    },
+    {
+      "resourceType": "Condition",
+      "criteria": "Condition?_compartment=%patient"
+    },
+    {
+      "resourceType": "RelatedPerson",
+      "criteria": "RelatedPerson?_compartment=%patient"
+    },
+    {
+      "resourceType": "Task",
+      "criteria": "Task?subject=%patient",
+      "readonly": true
+    }
+  ]
+}

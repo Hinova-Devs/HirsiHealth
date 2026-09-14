@@ -11,7 +11,7 @@ import {
   AlertCircle,
   FileBadge
 } from 'lucide-react';
-import { DocumentReference, Binary } from '@medplum/fhirtypes';
+import { DocumentReference } from '@medplum/fhirtypes';
 
 // Category mappings from README
 const CATEGORIES = [
@@ -107,16 +107,20 @@ function UploadPage() {
         throw new Error('Authenticated profile could not be determined.');
       }
 
-      // 2. Upload file as a Binary resource
-      // Medplum Client createBinary takes (file: File | Blob, filename?: string, contentType?: string)
-      const binaryResponse = await medplum.createBinary(
-        file, 
-        file.name, 
-        file.type || 'application/octet-stream'
-      ) as Binary;
+      // 2. Upload file via createMedia to set Binary.securityContext automatically
+      const media = await medplum.createMedia({
+        data: file,
+        filename: file.name,
+        contentType: file.type || 'application/octet-stream',
+        additionalFields: {
+          subject: {
+            reference: `${userProfile.resourceType}/${userProfile.id}`
+          }
+        }
+      });
 
-      if (!binaryResponse || !binaryResponse.id) {
-        throw new Error('Failed to retrieve reference ID from binary storage response.');
+      if (!media || !media.content?.url) {
+        throw new Error('Failed to retrieve reference ID from media storage response.');
       }
 
       // 3. Resolve category label
@@ -146,7 +150,7 @@ function UploadPage() {
           {
             attachment: {
               contentType: file.type || 'application/octet-stream',
-              url: `Binary/${binaryResponse.id}`,
+              url: media.content.url,
               title: title.trim(),
               size: file.size
             }

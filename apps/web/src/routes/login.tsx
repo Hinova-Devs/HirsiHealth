@@ -36,25 +36,6 @@ function LoginPage() {
     }
   };
 
-  const handleDemoSignIn = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await loginPatient('demo_patient@hersihealth.so', 'DemoPatient123!');
-      navigate({ to: '/dashboard' });
-    } catch (err: any) {
-      console.error('Demo sign-in error:', err);
-      // Fall back to just filling the fields so user can try manually
-      setEmail('demo_patient@hersihealth.so');
-      setPassword('DemoPatient123!');
-      setError(
-        'Demo account not found on this server. Credentials have been pre-filled — try signing in manually.'
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-slate-950 px-6 overflow-hidden font-sans">
       {/* Background glow effects */}
@@ -131,21 +112,6 @@ function LoginPage() {
             )}
           </button>
         </form>
-
-        <div className="relative flex py-2 items-center">
-          <div className="flex-grow border-t border-slate-900"></div>
-          <span className="flex-shrink mx-4 text-slate-600 text-xs font-medium uppercase">Or Test Drive</span>
-          <div className="flex-grow border-t border-slate-900"></div>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleDemoSignIn}
-          id="btn_demo_credentials"
-          className="w-full py-2.5 bg-slate-900 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition-colors cursor-pointer"
-        >
-          Use Demo Credentials
-        </button>
 
         <p className="text-center text-xs text-slate-500 font-medium">
           Don't have an account?{' '}
