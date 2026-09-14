@@ -59,3 +59,51 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(20, 184, 166, 0.4);
 }
+
+/* --- 3D scene helpers (landing page) ------------------------------------- */
+
+@utility preserve-3d {
+  transform-style: preserve-3d;
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+
+@utility float-slow {
+  animation: float-y 7s ease-in-out infinite;
+}
+
+@utility float-slower {
+  animation: float-y 9s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+/* Pointer tilt: the handler writes --rx/--ry, CSS does the rest. Both default
+   to 0 so the scene is upright before the first pointer move and on touch. */
+@utility tilt-3d {
+  --rx: 0deg;
+  --ry: 0deg;
+  transform: rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Mobile: backdrop blur on large panels is the main scroll-jank source, and
+   the decorative glows cost a full-screen composite. Both go. */
+@media (max-width: 640px) {
+  .glass-panel {
+    backdrop-filter: none;
+    background: rgba(15, 23, 42, 0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
