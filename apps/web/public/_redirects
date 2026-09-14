@@ -1,0 +1,14 @@
+# Netlify rules. Copied into dist/ by Vite, so they apply to every deploy
+# whatever the publish directory is set to. First match wins — the SPA
+# fallback must stay last.
+
+# The two proxies the Vite dev server provides locally (vite.config.ts).
+# storage.medplum.com is CloudFront and sends no CORS headers, so the browser
+# cannot read a document's bytes from it directly — without this rule the
+# request falls through to the SPA fallback and returns 404.
+/api/*            https://api.medplum.com/:splat       200
+/storage-proxy/*  https://storage.medplum.com/:splat   200
+
+# Client-side routing: /documents, /dashboard … are not files on disk.
+# Without this, reloading any route other than / is a 404.
+/*  /index.html  200
